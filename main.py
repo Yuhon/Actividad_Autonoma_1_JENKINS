@@ -1,50 +1,33 @@
 from selenium import webdriver
-from selenium.webdriver.edge.service import Service
 from selenium.webdriver.common.by import By
-from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.support.ui import WebDriverWait
+from selenium.webdriver.support import expected_conditions as EC
 import time
 
-service = Service(executable_path="msedgedriver.exe")
-driver = webdriver.Edge(service=service)
+def esperar(driver, locator, condicion, tiempo=10):
+    wait = WebDriverWait(driver, tiempo)
+    return wait.until(condicion(locator))
 
-driver.get("https://www.saucedemo.com")
-# time.sleep(2)
+driver = webdriver.Chrome()
+driver.maximize_window()
 
-# Este es un contador dinamico en vez del time.sleep 
-WebDriverWait(driver, 10).until(
-    EC.presence_of_element_located((By.XPATH, '//input[@placeholder="Username"]'))
-)
+inicio = time.perf_counter()
 
-##Este enlace lo copiamos desde el inspeccionar de la pagna web, el elemento que queramos, click derecho, copy, copy full XPath o
-##una forma correcta es en el inspector de navegador ponemos ctrl+f Y se habre el buscador par apoder ir hacienod los inputs 
-username_input = driver.find_element(By.XPATH, '//input[@placeholder="Username"]')
-username_input.send_keys("standard_user")
+driver.get("https://webdriveruniversity.com/Ajax-Loader/index.html")
 
+esperar(driver, (By.ID, "loader"), EC.invisibility_of_element_located)
 
-password_input = driver.find_element(By.XPATH, "/html/body/div/div/div[2]/div[1]/div/div/form/div[2]/input")
-password_input.send_keys("secret_sauce")
+fin = time.perf_counter()
+print("Tiempo hasta que desaparece el loader:", round(fin - inicio, 2), "segundos")
 
+boton = esperar(driver, (By.ID, "button1"), EC.element_to_be_clickable)
+boton.click()
 
-boton_login = driver.find_element(By.XPATH, '//input[contains(@value, "Login")]')
-boton_login.click()
+modal = esperar(driver, (By.CLASS_NAME, "modal-content"), EC.visibility_of_element_located)
 
-#time.sleep(3)
-WebDriverWait(driver, 10).until(
-    EC.presence_of_element_located((By.XPATH, '//div[contains(text(),"T-Shirt")]/../../..//button[contains(text(),"Add")]'))
-)
+if modal.is_displayed():
+    print("El modal se mostró correctamente")
+else:
+    print("El modal NO se mostró")
 
-#Esto es para que se agregen los productos 
-boton_agregar = driver.find_element(By.XPATH, '//div[contains(text(),"T-Shirt")]/../../..//button[contains(text(),"Add")]')
-boton_agregar.click()
-
-boton_agregar = driver.find_element(By.XPATH, '/html/body/div/div/div/div[2]/div/div/div/div[1]/div[2]/div[2]/button')
-boton_agregar.click()
-
-boton_agregar = driver.find_element(By.XPATH, '/html/body/div/div/div/div[2]/div/div/div/div[4]/div[2]/div[2]/button')
-boton_agregar.click()
-
-boton_agregar = driver.find_element(By.XPATH, '/html/body/div/div/div/div[2]/div/div/div/div[2]/div[2]/div[2]/button')
-boton_agregar.click()
-
-time.sleep(10)
+driver.quit()
